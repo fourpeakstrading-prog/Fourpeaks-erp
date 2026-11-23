@@ -5,22 +5,35 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-that-is-at-least-32-bytes-l
 os.environ.setdefault("FIRST_OWNER_EMAIL", "owner@example.com")
 os.environ.setdefault("FIRST_OWNER_PASSWORD", "owner-password")
 
-import pytest  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
+from pathlib import Path  # noqa: E402
 
-from app.db import Base, SessionLocal, engine  # noqa: E402
+import pytest  # noqa: E402
+from alembic.config import Config  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+
+from alembic import command  # noqa: E402
+from app.db import SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Role, User  # noqa: E402
 from app.security import hash_password  # noqa: E402
 
 
+def _reset_schema():
+    """Drop everything (tables and enum types) and rebuild via the real migrations,
+    so tests also exercise the migration files and the seeded chart of accounts."""
+    with engine.begin() as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+    cfg = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    cfg.set_main_option("script_location", str(Path(__file__).resolve().parents[1] / "alembic"))
+    command.upgrade(cfg, "head")
+
+
 @pytest.fixture(autouse=True)
 def fresh_db():
-    """Each test starts from empty tables."""
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    """Each test starts from freshly migrated, seeded tables."""
+    _reset_schema()
     yield
-    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.bootstrap import ensure_first_owner
 from app.config import get_settings
 from app.db import SessionLocal
-from app.routers import audit, auth, settings, users
+from app.routers import audit, auth, ledger, settings, users
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(audit.router)
 app.include_router(settings.router)
+app.include_router(ledger.router)
 
 
 @app.get("/health", tags=["health"])
