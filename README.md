@@ -8,13 +8,13 @@ It is being built for a real company in Oman (OMR, three-decimal currency, VAT d
 
 ## Status
 
-Stage 1 of 7 is done. See [docs/build-plan.md](docs/build-plan.md) for the full plan.
+Stages 1 and 2 of 7 are done. See [docs/build-plan.md](docs/build-plan.md) for the full plan.
 
 | Stage | What | State |
 |---|---|---|
 | 1 | Shared core: login, users, roles, audit log, company settings | Done |
-| 2 | Chart of accounts and journal, with balance and period-close rules | Next |
-| 3 | Contacts, items, sales invoices, customer payments | |
+| 2 | Chart of accounts and journal, with balance and period-close rules | Done |
+| 3 | Contacts, items, sales invoices, customer payments | Next |
 | 4 | Purchase orders, receiving, bills, stock | |
 | 5 | Bank import and reconciliation, financial reports | |
 | 6 | Employees, leave, payroll, bank file | |
@@ -22,9 +22,13 @@ Stage 1 of 7 is done. See [docs/build-plan.md](docs/build-plan.md) for the full 
 
 ## Screenshots
 
-| Sign in | Users (owner view) |
+| Manual journal entry | Journal with a reversal |
 |---|---|
-| ![Sign in](docs/screenshots/login.png) | ![Users](docs/screenshots/users.png) |
+| ![New entry](docs/screenshots/new-entry.png) | ![Journal](docs/screenshots/journal.png) |
+
+| Trial balance | Users (owner view) |
+|---|---|
+| ![Trial balance](docs/screenshots/trial-balance.png) | ![Users](docs/screenshots/users.png) |
 
 ## Run it
 
@@ -55,7 +59,7 @@ Rules that apply everywhere (from the design spec):
 4. Every journal entry must balance, and no entry can be dated inside a closed month.
 5. Every change goes in the audit log with before and after values.
 
-The first stage implements rule 5 and the role model. Rules 1 to 4 arrive with the ledger in stage 2, with tests.
+Stage 1 implements rule 5 and the role model. Stage 2 implements rules 1, 3 and 4 in `backend/app/services/ledger.py`, each covered by a test in `backend/tests/test_ledger.py`. Rule 2 arrives with invoices in stage 3.
 
 ## Roles
 
