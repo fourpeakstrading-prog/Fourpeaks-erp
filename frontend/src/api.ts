@@ -23,6 +23,55 @@ export interface CompanySettings {
   financial_year_start_month: number;
 }
 
+
+export type AccountType = "asset" | "liability" | "equity" | "income" | "expense";
+
+export interface Account {
+  id: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  parent_id: string | null;
+  active: boolean;
+  system_key: string | null;
+}
+
+export interface JournalLine {
+  id: string;
+  position: number;
+  account_id: string;
+  debit: string;
+  credit: string;
+  description: string;
+}
+
+export interface JournalEntry {
+  id: string;
+  number: number;
+  entry_date: string;
+  source: string;
+  source_id: string | null;
+  narration: string;
+  locked: boolean;
+  reverses_id: string | null;
+  reversed_by_id: string | null;
+  created_at: string;
+  lines: JournalLine[];
+}
+
+export interface Period {
+  year: number;
+  month: number;
+  closed: boolean;
+}
+
+export interface TrialBalance {
+  as_of: string | null;
+  rows: { account_id: string; code: string; name: string; type: AccountType; debit: string; credit: string }[];
+  total_debit: string;
+  total_credit: string;
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -93,5 +142,39 @@ export const api = {
     get: () => request<CompanySettings>("/settings"),
     update: (data: Partial<CompanySettings>) =>
       request<CompanySettings>("/settings", { method: "PATCH", body: JSON.stringify(data) }),
+  },
+  accounts: {
+    list: (includeInactive = false) =>
+      request<Account[]>(`/accounts${includeInactive ? "?include_inactive=true" : ""}`),
+    create: (data: { code: string; name: string; type: AccountType }) =>
+      request<Account>("/accounts", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<{ name: string; active: boolean }>) =>
+      request<Account>(`/accounts/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  },
+  journal: {
+    list: (params: Record<string, string> = {}) =>
+      request<JournalEntry[]>(`/journal?${new URLSearchParams(params)}`),
+    get: (id: string) => request<JournalEntry>(`/journal/${id}`),
+    post: (data: {
+      entry_date: string;
+      narration: string;
+      lines: { account_id: string; debit: string; credit: string; description: string }[];
+    }) => request<JournalEntry>("/journal", { method: "POST", body: JSON.stringify(data) }),
+    reverse: (id: string, on: string, narration = "") =>
+      request<JournalEntry>(`/journal/${id}/reverse`, {
+        method: "POST",
+        body: JSON.stringify({ on, narration }),
+      }),
+  },
+  periods: {
+    list: () => request<Period[]>("/periods"),
+    close: (year: number, month: number) =>
+      request<Period>("/periods/close", { method: "POST", body: JSON.stringify({ year, month }) }),
+    reopen: (year: number, month: number) =>
+      request<Period>("/periods/reopen", { method: "POST", body: JSON.stringify({ year, month }) }),
+  },
+  reports: {
+    trialBalance: (asOf?: string) =>
+      request<TrialBalance>(`/reports/trial-balance${asOf ? `?as_of=${asOf}` : ""}`),
   },
 };
