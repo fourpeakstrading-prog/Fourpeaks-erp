@@ -6,10 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-COPY pyproject.toml ./
-RUN pip install --upgrade pip && pip install .
-
 COPY . .
+RUN pip install --upgrade pip && pip install .
 
 EXPOSE 8000
 
